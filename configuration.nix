@@ -1,4 +1,4 @@
-{ pkgs, modulesPath, ... }: {
+{ pkgs, modulesPath, lib, ... }: {
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-graphical-gnome.nix"
   ];
@@ -6,8 +6,9 @@
   # 1. PHÒNG CHỐNG TRÊN 2 LỚP: VÁ TRIỆT ĐỂ LỖI ĐEN MÀN HÌNH MÁY DELL
   # Ép GNOME chạy trên X11 cực kỳ tương thích thay vì Wayland (Tránh kẹt dấu gạch '_')
   services.xserver.displayManager.gdm.wayland = false;
-  # Tắt màn hình chờ Plymouth để rút ngắn thời gian boot và tránh treo driver đồ họa
-  boot.plymouth.enable = false;
+  
+  # Dùng lib.mkForce để ép tắt Plymouth, giải quyết triệt để xung đột với cấu hình Live CD gốc!
+  boot.plymouth.enable = lib.mkForce false;
 
   # 2. ĐẢM BẢO WI-FI INTEL AX201 HOẠT ĐỘNG HOÀN HẢO
   nixpkgs.config.allowUnfree = true;
@@ -25,7 +26,6 @@
   ];
 
   # 4. THIẾT LẬP HÌNH NỀN VÀ TỰ ĐỘNG GHIM APP LÊN THANH DOCK (KHÔNG DÙNG CONSOLE)
-  # Hệ thống tự động ghim Firefox, VS Code, CP Editor và Thư mục lên thanh Dock cho bro!
   environment.etc."wallpaper.png".source = ./wallpaper.png;
 
   services.xserver.desktopManager.gnome.extraGSettingsOverrides = ''
