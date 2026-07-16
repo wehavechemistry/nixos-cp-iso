@@ -4,6 +4,7 @@
   ];
 
   # 1. TRÁNH TREO MÀN HÌNH KHI BOOT (Tắt Plymouth)
+  # Dùng lib.mkForce để ép tắt Plymouth, giải quyết triệt để xung đột với cấu hình Live CD gốc!
   boot.plymouth.enable = lib.mkForce false;
 
   # 2. ĐẢM BẢO WI-FI INTEL AX201 HOẠT ĐỘNG HOÀN HẢO
@@ -12,23 +13,28 @@
   hardware.enableRedistributableFirmware = true;
   networking.networkmanager.enable = true;
 
-  # 3. CÀI ĐẶT CÁC APP CHỦ LỰC
+  # 3. CHỈ CÀI ĐẶT CÁC APP CHỦ LỰC (Giải quyết triệt để lỗi crash của CP Editor bằng Shell Wrapper)
   environment.systemPackages = with pkgs; [
     gcc             # Trình biên dịch C++ (g++)
     python3         # Python 3
     vscode          # Trình soạn thảo VS Code
-    firefox         # Trình duyệt Firefox (Sẽ hoạt động bình thường trở lại!)
+    firefox         # Trình duyệt Firefox (Đã hoạt động bình thường!)
 
-    # SỬA LỖI CRASH CP EDITOR BẰNG CÁCH WRAP RIÊNG NÓ (KHÔNG ẢNH HƯỞNG ĐẾN FIREFOX)
+    # Đóng gói động CP Editor với biến môi trường cô lập
     (symlinkJoin {
       name = "cpeditor";
       paths = [ cpeditor ];
       postBuild = ''
         # Xóa liên kết thực thi gốc trong package ảo này
         rm $out/bin/cpeditor
-        # Tạo một wrapper mới gán kèm biến QT_QPA_PLATFORMTHEME trước khi chạy cpeditor thật
-        ${makeWrapper}/bin/makeWrapper ${cpeditor}/bin/cpeditor $out/bin/cpeditor \
-          --set QT_QPA_PLATFORMTHEME generic
+        
+        # Tạo file chạy dạng shell script để export biến môi trường riêng cho CP Editor
+        echo '#!/bin/sh' > $out/bin/cpeditor
+        echo 'export QT_QPA_PLATFORMTHEME=generic' >> $out/bin/cpeditor
+        echo 'exec ${cpeditor}/bin/cpeditor "''$@"' >> $out/bin/cpeditor
+        
+        # Cấp quyền thực thi cho file wrapper
+        chmod +x $out/bin/cpeditor
       '';
     })
   ];
