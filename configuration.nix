@@ -3,10 +3,7 @@
     "${modulesPath}/installer/cd-dvd/installation-cd-graphical-gnome.nix"
   ];
 
-  # 1. PHÒNG CHỐNG TRÊN 2 LỚP: VÁ TRIỆT ĐỂ LỖI ĐEN MÀN HÌNH MÁY DELL
-  # Ép GNOME chạy trên X11 cực kỳ tương thích thay vì Wayland (Tránh kẹt dấu gạch '_')
-  services.xserver.displayManager.gdm.wayland = false;
-  
+  # 1. TRÁNH TREO MÀN HÌNH KHI BOOT (Tắt Plymouth)
   # Dùng lib.mkForce để ép tắt Plymouth, giải quyết triệt để xung đột với cấu hình Live CD gốc!
   boot.plymouth.enable = lib.mkForce false;
 
