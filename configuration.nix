@@ -22,7 +22,12 @@
     firefox         # Trình duyệt Firefox (Đảm bảo chắc chắn có sẵn)
   ];
 
-  # 4. THIẾT LẬP HÌNH NỀN VÀ TỰ ĐỘNG GHIM APP LÊN THANH DOCK (KHÔNG DÙNG CONSOLE)
+  # 4. SỬA TRIỆT ĐỂ LỖI CRASH KHI LƯU FILE CỦA CP EDITOR (ÉP DÙNG QT FUSION DIALOG)
+  environment.sessionVariables = {
+    QT_QPA_PLATFORMTHEME = "generic";
+  };
+
+  # 5. THIẾT LẬP HÌNH NỀN VÀ TỰ ĐỘNG GHIM APP LÊN THANH DOCK (KHÔNG DÙNG CONSOLE)
   environment.etc."wallpaper.png".source = ./wallpaper.png;
 
   services.xserver.desktopManager.gnome.extraGSettingsOverrides = ''
