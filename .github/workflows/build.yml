@@ -1,0 +1,24 @@
+name: Build NixOS CP ISO
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v25
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    - name: Build ISO
+      run: |
+        nix-build -A config.system.build.isoImage '<nixpkgs/nixos>' -I nixos-config=configuration.nix -o result
+
+    - name: Upload ISO Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: NixOS-CP-Dell-ISO
+        path: result/iso/*.iso
