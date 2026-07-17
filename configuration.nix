@@ -1,29 +1,46 @@
 { pkgs, modulesPath, lib, ... }: {
   imports = [
-    # Boot thẳng vào môi trường XFCE giống hệt thầy
-    "${modulesPath}/installer/cd-dvd/installation-cd-graphical-xfce.nix"
+    # DÙNG BẢN BASE CHUẨN (Đảm bảo GitHub build mượt mà không bao giờ lỗi path)
+    "${modulesPath}/installer/cd-dvd/installation-cd-base.nix"
   ];
 
-  # Khởi động siêu tốc, bỏ qua màn hình chờ Plymouth
+  # 1. BẬT GIAO DIỆN XFCE THỦ CÔNG & ĐỔI USER THÀNH 'dtth' CHO GIỐNG HỆT THẦY
+  services.xserver.enable = true;
+  services.xserver.desktopManager.xfce.enable = true;
+  services.xserver.displayManager.lightdm.enable = true;
+  
+  # Tạo hẳn user 'dtth' để khi vào terminal hay màn hình khóa đều khớp với ảnh của thầy
+  users.users.dtth = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "networkmanager" "video" ];
+    description = "dtth";
+    initialPassword = ""; # Không để mật khẩu để click đăng nhập cho nhanh
+  };
+
+  # Ép hệ thống tự động đăng nhập thẳng vào user dtth khi vừa boot xong
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = lib.mkForce "dtth";
+
+  # 2. TRÁNH TREO MÀN HÌNH KHI BOOT (Tắt Plymouth)
   boot.plymouth.enable = lib.mkForce false;
 
-  # Mở khóa Unfree Driver để nhận card mạng Intel AX201 trên laptop Dell
+  # 3. ĐẢM BẢO WI-FI INTEL AX201 HOẠT ĐỘNG HOÀN HẢO
   nixpkgs.config.allowUnfree = true;
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = true;
   networking.networkmanager.enable = true;
 
-  # Bộ công cụ đi thi chuẩn đích danh của thầy
+  # 4. CÀI ĐẶT CÁC APP CHỦ LỰC THEO BỘ CÔNG CỤ ĐI THI CỦA THẦY
   environment.systemPackages = with pkgs; [
-    gcc
-    python3
-    firefox
-    vscode
-    cpeditor
-    codeblocks
+    gcc             # Trình biên dịch C++
+    python3         # Python 3
+    firefox         # Trình duyệt Firefox
+    vscode          # Trình soạn thảo VS Code
+    cpeditor        # CP Editor
+    codeblocks      # Code::Blocks
   ];
 
-  # TỰ ĐỘNG ÉP NỀN ĐEN KỊT KHI KHỞI ĐỘNG (Bản vá nâng cao cho XFCE)
+  # 5. TỰ ĐỘNG ÉP NỀN ĐEN KỊT KHI KHỞI ĐỘNG
   environment.etc."set-black-bg.sh" = {
     text = ''
       #!/bin/sh
@@ -33,7 +50,7 @@
       # Đợi giao diện đồ họa XFCE load xong hoàn toàn
       sleep 2
       
-      # Quét sạch và ép tất cả các không gian màn hình nhận ảnh đen, bật chế độ Zoom
+      # Quét và ép tất cả các không gian màn hình nhận ảnh đen, bật chế độ Zoom
       for p in $(xfconf-query -c xfce4-desktop -p /backdrop -l 2>/dev/null | grep last-image); do
         xfconf-query -c xfce4-desktop -p "$p" -s /tmp/black.png
       done
@@ -41,10 +58,10 @@
         xfconf-query -c xfce4-desktop -p "$p" -s 5
       done
     '';
-    mode = "0755"; # Cấp quyền thực thi cho script
+    mode = "0755";
   };
 
-  # Lệnh gọi script chạy ngầm ngay khi đăng nhập vào màn hình desktop
+  # Lệnh gọi script chạy ngầm ngay khi vừa đăng nhập vào màn hình desktop
   environment.etc."xdg/autostart/black-background.desktop".text = ''
     [Desktop Entry]
     Type=Application
@@ -55,6 +72,6 @@
     Terminal=false
   '';
 
-  # Bỏ qua bước chờ kết nối mạng để tối ưu hóa thời gian mở máy
+  # Tối ưu hóa tốc độ boot: Bỏ qua bước đợi kết nối mạng lúc khởi động
   systemd.services.NetworkManager-wait-online.enable = false;
 }
