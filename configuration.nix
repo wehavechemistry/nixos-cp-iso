@@ -3,7 +3,7 @@
     "${modulesPath}/installer/cd-dvd/installation-cd-base.nix"
   ];
 
-  # 1. KÍCH HOẠT GIAO DIỆN XFCE VÀ THIẾT LẬP USER 'dtth' ĐĂNG NHẬP TỰ ĐỘNG
+  # 1. KÍCH HOẠT GIAO DIỆN XFCE VÀ THIẾT LẬP USER 'dtth' CÓ MẬT KHẨU "1"
   services.xserver.enable = true;
   services.xserver.desktopManager.xfce.enable = true;
   services.xserver.displayManager.lightdm.enable = true;
@@ -12,11 +12,11 @@
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "video" ];
     description = "dtth";
-    initialPassword = "";
+    initialPassword = "1"; # Đặt mật khẩu là số 1 chuẩn bài như bạn muốn
   };
 
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = lib.mkForce "dtth";
+  # TẮT AUTO-LOGIN: Để hệ thống dừng ở màn hình khóa bắt nhập số 1 mới cho vào
+  services.displayManager.autoLogin.enable = false;
   boot.plymouth.enable = lib.mkForce false;
 
   # 2. ĐẢM BẢO PHẦN CỨNG LAPTOP VÀ WI-FI HOẠT ĐỘNG HOÀN HẢO
@@ -34,6 +34,18 @@
     cpeditor
     codeblocks
   ];
+
+  # ==================== SYSTEMD SERVICE: ÉP ĐỘ SÁNG PHẦN CỨNG VỀ ĐÚNG MỨC 20 ====================
+  # Chạy độc lập sau khi Display Manager lên để không lo bị driver đè lại giá trị
+  systemd.services.set-safe-brightness = {
+    description = "Ep cuong che do sang man hinh ve muc 20 sau khi load driver";
+    after = [ "display-manager.service" ];
+    wantedBy = [ "graphical.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'sleep 2; echo 20 > /sys/class/backlight/intel_backlight/brightness || true'";
+    };
+  };
 
   # ==================== PHÉP THUẬT KÍCH HOẠT DARK MODE TRỰC TIẾP VÀO HOME ====================
   system.activationScripts.setupDtthHome = {
@@ -189,7 +201,6 @@
       EOF
 
       # C. TRÍCH XUẤT WALLPAPER ĐEN TỪ REPO VÀ ÉP XFCE LOAD LÊN CHO MỌI ĐẦU MONITOR
-      # Nix tự động biên dịch và copy file từ git repo sang RAM khi boot
       cp ${./wallpaper.png} /home/dtth/.config/wallpaper.png
 
       cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
@@ -197,7 +208,6 @@
       <channel name="xfce4-desktop" version="1.0">
         <property name="backdrop" type="empty">
           <property name="screen0" type="empty">
-            # Nhắm chuẩn xác cổng monitoreDP-1 trên máy laptop Dell của bạn
             <property name="monitoreDP-1" type="empty">
               <property name="workspace0" type="empty">
                 <property name="image-style" type="int" value="5"/>
@@ -211,7 +221,6 @@
                 </property>
               </property>
             </property>
-            # Cấu hình dự phòng cho monitor0 trong trường hợp cắm máy tính phòng lab khác khi đi thi
             <property name="monitor0" type="empty">
               <property name="workspace0" type="empty">
                 <property name="image-style" type="int" value="5"/>
