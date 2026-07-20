@@ -3,6 +3,10 @@
     "${modulesPath}/installer/cd-dvd/installation-cd-base.nix"
   ];
 
+  # FIX GIỜ GIẤC PHÒNG THI: Khóa chuẩn múi giờ Việt Nam và đọc giờ Local từ BIOS Windows
+  time.timeZone = "Asia/Ho_Chi_Minh";
+  time.hardwareClockInLocalTime = true;
+
   # 1. KÍCH HOẠT GIAO DIỆN XFCE VÀ THIẾT LẬP USER 'dtth' CÓ MẬT KHẨU "1"
   services.xserver.enable = true;
   services.xserver.desktopManager.xfce.enable = true;
@@ -12,10 +16,10 @@
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "video" ];
     description = "dtth";
-    initialPassword = "1"; # Đặt mật khẩu là số 1 chuẩn bài như bạn muốn
+    initialPassword = "1"; # Mật khẩu đăng nhập hệ điều hành là 1
   };
 
-  # TẮT AUTO-LOGIN: Để hệ thống dừng ở màn hình khóa bắt nhập số 1 mới cho vào
+  # TẮT AUTO-LOGIN: Dừng ở màn hình đăng nhập để đảm bảo an toàn phần cứng khi boot
   services.displayManager.autoLogin.enable = false;
   boot.plymouth.enable = lib.mkForce false;
 
@@ -25,7 +29,7 @@
   hardware.enableRedistributableFirmware = true;
   networking.networkmanager.enable = true;
 
-  # 3. BỘ ỨNG DỤNG ĐI THI KHÔNG LỖI CRASH
+  # 3. BỘ ỨNG DỤNG LẬP TRÌNH THI ĐẤU
   environment.systemPackages = with pkgs; [
     gcc
     python3
@@ -35,34 +39,49 @@
     codeblocks
   ];
 
-  # ==================== SYSTEMD SERVICE: ÉP ĐỘ SÁNG PHẦN CỨNG VỀ ĐÚNG MỨC 20 ====================
-  # Chạy độc lập sau khi Display Manager lên để không lo bị driver đè lại giá trị
+  # ==================== SYSTEMD SERVICE: ÉP ĐỘ SÁNG PHẦN CỨNG VỀ ĐÚNG MỨC 10 ====================
   systemd.services.set-safe-brightness = {
-    description = "Ep cuong che do sang man hinh ve muc 20 sau khi load driver";
+    description = "Ep cuong che do sang man hinh ve muc 10 siêu tiet kiem pin";
     after = [ "display-manager.service" ];
     wantedBy = [ "graphical.target" ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.bash}/bin/bash -c 'sleep 2; echo 20 > /sys/class/backlight/intel_backlight/brightness || true'";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'sleep 2; echo 10 > /sys/class/backlight/intel_backlight/brightness || true'";
     };
   };
 
-  # ==================== PHÉP THUẬT KÍCH HOẠT DARK MODE TRỰC TIẾP VÀO HOME ====================
+  # ==================== PHÉP THUẬT AUTO-LOAD CONFIG VÀ DI CHUYỂN REPO ====================
   system.activationScripts.setupDtthHome = {
     text = ''
-      # Tạo sẵn các thư mục cấu hình trong thư mục cá nhân của dtth trước khi desktop load up
       mkdir -p /home/dtth/.config/cpeditor
       mkdir -p /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml
+      mkdir -p /home/dtth/CP_Folder
 
-      # A. GHI ĐÈ FILE CẤU HÌNH CP EDITOR DRACULA CHUẨN CỦA BẠN (Đã xử lý chuỗi ký tự Nix)
+      # A. BÊ NGUYÊN THƯ MỤC CP_FOLDER TỪ REPO GITHUB THẢ VÀO HOME TRONG LIVE ISO
+      cp -r ${./CP_Folder}/* /home/dtth/CP_Folder/
+
+      # B. GHI ĐÈ FILE CẤU HÌNH CP EDITOR (SỬA NGOẶC, ÉP FONT 13 VÀ THIẾT LẬP BREEZE DARK)
       cat << 'EOF' > /home/dtth/.config/cpeditor/settings.ini
       [General]
+      auto_complete_parentheses=true
+      auto_remove_parentheses=true
+      tab_jump_out_parentheses=true
+      
+      # Thiết lập Theme Breeze Dark và UI Dark Fusion chuẩn đét theo ảnh yêu cầu
+      editor_theme=Breeze Dark
+      ui_style=Dark Fusion
+      
+      # Ép cứng toàn bộ kích thước font chữ lên size 13 bằng chuỗi Qt thuần
+      editor_font="DejaVu Sans Mono,13,-1,5,50,0,0,0,0,0"
+      test_cases_font="DejaVu Sans Mono,13,-1,5,50,0,0,0,0,0"
+      message_logger_font="DejaVu Sans Mono,13,-1,5,50,0,0,0,0,0"
+      show_only_monospaced_font=true
+      use_custom_application_font=false
+      
+      # Các cài đặt hệ thống bổ sung nhằm tối ưu hiệu năng ứng dụng
       answer_file_save_path=./''${basename}_''${1-index}.ans
       ask_for_loading_external_changes=true
-      auto_complete_parentheses=true
-      auto_indent=true
       auto_load_external_changes_if_no_unsaved_modification=true
-      auto_remove_parentheses=true
       auto_save=false
       auto_save_interval=1000
       auto_save_interval_type=After the last modification
@@ -71,7 +90,6 @@
       check_on_testcases_with_empty_output=false
       check_update=true
       cursor_width=1
-      custom_application_font=@Variant(\0\0\0@\0\0\0\b\0S\0\x61\0n\0s@$\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x32\x10)
       default_file_paths_for_problem_urls=@Invalid()
       default_language=C++
       default_time_limit=5000
@@ -80,8 +98,6 @@
       display_eoln_in_diff=false
       display_stopwatch=false
       display_test_case_length_limit=500000
-      editor_font=@Variant(\0\0\0@\0\0\0\x12\0m\0o\0n\0o\0s\0p\0\x61\0\x63\0\x65@$\0\0\0\0\0\0\xff\xff\xff\xff\x2\x1\0\x32\x10)
-      editor_theme=Dracula
       error_message_color=red
       extra_bottom_margin=false
       file_problem_binding=@Invalid()
@@ -98,7 +114,6 @@
       locale=system
       maximized_window=false
       message_length_limit=20000
-      message_logger_font=@Variant(\0\0\0@\0\0\0\x12\0m\0o\0n\0o\0s\0p\0\x61\0\x63\0\x65@$\0\0\0\0\0\0\xff\xff\xff\xff\x2\x1\0\x32\x10)
       number_of_problems_in_contest=5
       opacity=100
       open_file_length_limit=20000
@@ -106,7 +121,6 @@
       output_display_length_limit=50000
       output_length_limit=500000
       promotion_dialog_shown=false
-      recent_files=/home/dtth/A.cpp
       replace_tabs=false
       restore_old_problem_url=false
       right_splitter_size=@ByteArray()
@@ -115,18 +129,8 @@
       save_file_on_compilation=true
       save_file_on_execution=false
       save_tests=false
-      show_compile_and_run_only=false
-      show_only_monospaced_font=true
-      splitter_size=@ByteArray()
-      tab_jump_out_parentheses=false
-      tab_width=4
-      test_case_maximum_height=300
-      test_cases_font=@Variant(\0\0\0@\0\0\0\x12\0m\0o\0n\0o\0s\0p\0\x61\0\x63\0\x65@$\0\0\0\0\0\0\xff\xff\xff\xff\x2\x1\0\x32\x10)
-      testcases_matching_rules=@Variant(\0\0\0\v\0\0\0\x2\0\0\0\x10\0(\0.\0*\0)\0\\\0.\0i\0n\0\0\0\f\0\\\0\x31\0.\0\x61\0n\0s), @Variant(\0\0\0\v\0\0\0\x2\0\0\0\x10\0(\0.\0*\0)\0\\\0.\0i\0n\0\0\0\f\0\\\0\x31\0.\0o\0u\0t)
       toggle_stopwatch_on_tab_switch=false
       total_usage_time=0
-      ui_style=Dark Fusion
-      use_custom_application_font=false
       view_mode=split
       warn_message_color=green
       wrap_text=false
@@ -150,38 +154,14 @@
       set_time_limit_for_tab=false
 
       [cpp]
-      compile_command=c++ -Wall
+      compile_command=c++ -O3 -Wall
       compiler_output_codec=UTF-8
       output_path=''${tmpdir}/''${basename}
-      parentheses=@Variant(\0\0\0\t\0\0\0\x5\0\0\0\x2\0\0\0(\0\0\0\x2\0\0\0)\0\0\0\x2\0\0\0\x1\0\0\0\x2\0\0\0\x1\0\0\0\x2\0\0\0\x1), @Variant(\0\0\0\t\0\0\0\x5\0\0\0\x2\0\0\0Camp\\(\\)
       run_arguments=
       template_cursor_position_offset_characters=4
       template_cursor_position_offset_type=end
       template_cursor_position_regex=main\\(\\)
       template_path=
-
-      [default_path]
-      action\add_pairs_of_test_cases\changes=testcase
-      action\add_pairs_of_test_cases\uses=''${testcase}
-      action\custom_checker\changes=checker
-      action\custom_checker\uses=''${checker}
-      action\export_and_import_settings\changes=settings
-      action\export_and_import_settings\uses=''${settings}
-      action\export_and_load_session\changes=session
-      action\export_and_load_session\uses=''${session}
-      action\extract_and_load_snippets\changes=snippets
-      action\extract_and_load_snippets\uses=''${snippets}
-      action\load_single_test_case\changes=testcase
-      action\load_single_test_case\uses=''${testcase}
-      action\open_contest\changes="contest, file, testcase, checker"
-      action\open_contest\uses=''${contest}
-      action\open_file\changes="file, testcase, checker"
-      action\open_file\uses=''${file}
-      action\save_file\changes="file, testcase, checker"
-      action\save_file\uses=''${file}
-      action\save_test_case_to_a_file\changes=testcase
-      action\save_test_case_to_a_file\uses=''${testcase}
-      names_and_paths=@Variant(\0\0\0\v\0\0\0\x2\0\0\0\xe\0\x63\0h\0\x65\0\x63\0k\0\x65\0r\0\0\0\x14\0/\0h\0o\0m\0\x65\0/\0\x64\0t\0t\0h), @Variant(\0\0\0\v\0\0\0\x2\0\0\0\b\0\x66\0i\0l\0\x65\0\0\0\x14\0/\0h\0o\0m\0\x65\0/\0\x64\0t\0t\0h), @Variant(\0\0\0\v\0\0\0\x2\0\0\0\x10\0t\0\x65\0s\0t\0\x63\0\x61\0s\0\x65\0\0\0\x14\0/\0h\0o\0m\0\x65\0/\0\x64\0t\0t\0h)
 
       [hot_exit]
       auto_save=false
@@ -189,7 +169,7 @@
       enable=true
       EOF
 
-      # B. GHI ĐÈ TRỰC TIẾP THEME TỐI ADWAITA-DARK VÀO XSETTINGS CỦA USER
+      # C. ĐỒNG BỘ WINDOW MANAGER ADWAITA-DARK TẠO NỀN GIAO DIỆN TỐI ĐỒNG BỘ VỚI CP EDITOR
       cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
@@ -200,9 +180,8 @@
       </channel>
       EOF
 
-      # C. TRÍCH XUẤT WALLPAPER ĐEN TỪ REPO VÀ ÉP XFCE LOAD LÊN CHO MỌI ĐẦU MONITOR
+      # D. ÉP HÌNH NỀN HỆ THỐNG LOAD THÀNH FILE WALLPAPER TRÊN REPO
       cp ${./wallpaper.png} /home/dtth/.config/wallpaper.png
-
       cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xfce4-desktop" version="1.0">
@@ -239,12 +218,12 @@
       </channel>
       EOF
 
-      # D. BÀN GIAO QUYỀN SỞ HỮU TOÀN BỘ FILE CHO USER 'dtth' ĐỂ HỆ THỐNG ĐỌC MƯỢT MÀ
+      # E. PHÂN QUYỀN SỞ HỮU TOÀN BỘ FILE CHO USER TRÁNH LỖI READ-ONLY
       chown -R dtth:users /home/dtth
     '';
     deps = [ "users" ];
   };
 
-  # Vô hiệu hóa việc chờ kết nối mạng để giảm thời gian boot xuống mức tối thiểu
+  # Vô hiệu hóa việc chờ kết nối mạng khi khởi động để giảm thời gian nạp ISO xuống mức tối thiểu
   systemd.services.NetworkManager-wait-online.enable = false;
 }
