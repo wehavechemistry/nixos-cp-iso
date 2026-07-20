@@ -1,11 +1,10 @@
-#pragma GCC optimize("O3,unroll-loops,inline")
-#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
-
 #include<bits/stdc++.h>
 #include<ext/pb_ds/assoc_container.hpp>
 #include<ext/pb_ds/tree_policy.hpp>
 using namespace std;
 using namespace __gnu_pbds;
+#pragma GCC optimize("O3,unroll-loops,inline")
+#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
 using ll=long long;
 using ld=long double;
 #define pb push_back
@@ -567,6 +566,87 @@ s.count(x)
 
 template<class T>
 using fset=gp_hash_table<T,null_type>;
+
+////////////////////////////////////////////////////////
+//////////////////// BIG INTEGER ///////////////////////
+////////////////////////////////////////////////////////
+/*
+Big Integer
+
+If boost available:
+
+#include<boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
+using Big=cpp_int;
+
+Big pw(Big a,ll b){
+    Big r=1;
+    while(b){
+        if(b&1){
+            r*=a;
+        }
+        a*=a;
+        b>>=1;
+    }
+    return r;
+}
+
+Big gcd(Big a,Big b){
+    while(b){
+        Big t=a%b;
+        a=b;
+        b=t;
+    }
+    return a;
+}
+*/
+/*
+Non-negative only
+
+add(a,b)
+
+sub(a,b) (a>=b)
+*/
+
+string add(string a,string b){
+    if(a.size()<b.size())swap(a,b);
+    reverse(a.begin(),a.end());
+    reverse(b.begin(),b.end());
+    string c;
+    int carry=0;
+    for(int i=0;i<(int)a.size();i++){
+        int x=a[i]-'0'+carry;
+        if(i<(int)b.size())x+=b[i]-'0';
+        c.pb(char(x%10+'0'));
+        carry=x/10;
+    }
+    if(carry)c.pb(char(carry+'0'));
+    while(c.size()>1&&c.back()=='0')c.pop_back();
+    reverse(c.begin(),c.end());
+    return c;
+}
+
+string sub(string a,string b){
+    reverse(a.begin(),a.end());
+    reverse(b.begin(),b.end());
+    string c;
+    int borrow=0;
+    for(int i=0;i<(int)a.size();i++){
+        int x=a[i]-'0'-borrow;
+        if(i<(int)b.size())x-=b[i]-'0';
+        if(x<0){
+            x+=10;
+            borrow=1;
+        }else{
+            borrow=0;
+        }
+        c.pb(char(x+'0'));
+    }
+    while(c.size()>1&&c.back()=='0')c.pop_back();
+    reverse(c.begin(),c.end());
+    return c;
+}
 
 ////////////////////////////////////////////////////////
 /////////////////////// GRAPH //////////////////////////
@@ -1949,6 +2029,114 @@ for(int r=0;r<n;r++){
     ans=max(ans,r-l+1);
 }
 */
+
+////////////////////////////////////////////////////////
+/////////////////////// SOS DP //////////////////////////
+////////////////////////////////////////////////////////
+/*
+f[mask]=value of exact mask
+
+Submask Sum:
+After SOS:
+f[mask]=sum of all submask of mask
+
+Example:
+mask=111
+add:
+111
+110
+101
+100
+011
+010
+001
+000
+
+Call:
+SOS(n)
+
+Superset Sum:
+change:
+f[m]+=f[m^(1<<i)]
+
+to
+
+f[m^(1<<i)]+=f[m]
+*/
+/*
+void SOS(int n){
+    for(int i=0;i<n;i++){
+        for(int m=0;m<(1<<n);m++){
+            if(m&(1<<i)){
+                f[m]+=f[m^(1<<i)];
+            }
+        }
+    }
+}
+*/
+
+////////////////////////////////////////////////////////
+///////////////////// DIGIT DP //////////////////////////
+////////////////////////////////////////////////////////
+/*
+Count numbers in [l,r] satisfy condition.
+
+Answer:
+solve(r)-solve(l-1)
+
+State:
+dfs(pos,tight,lead,...)
+
+pos  = digit position
+tight= prefix already equal to limit?
+lead = still leading zero?
+
+Add more state if needed:
+sum
+cnt
+mod
+mask
+last
+...
+
+Transition:
+for(int d=0;d<=lim;d++)
+    dfs(next...)
+
+Only memo when tight=0.
+*/
+
+ll dp[20][2][2];
+
+string s;
+
+ll dfs(int i,bool tight,bool lead){
+    if(i==(int)s.size()){
+        return 1;
+    }
+    ll &res=dp[i][tight][lead];
+    if(!tight&&!lead&&res!=-1){
+        return res;
+    }
+    ll ans=0;
+    int lim=tight?s[i]-'0':9;
+    for(int d=0;d<=lim;d++){
+        ans+=dfs(i+1,tight&&(d==lim),lead&&(d==0));
+    }
+    if(!tight&&!lead){
+        res=ans;
+    }
+    return ans;
+}
+
+ll solve(ll x){
+    if(x<0){
+        return 0;
+    }
+    s=to_string(x);
+    memset(dp,-1,sizeof(dp));
+    return dfs(0,1,1);
+}
 
 ////////////////////////////////////////////////////////
 ////////////////// SHORTEST WINDOW /////////////////////
