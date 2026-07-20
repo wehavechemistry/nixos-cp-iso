@@ -60,7 +60,7 @@ int main(){
             return 0;
         }
 
-        if(!(t&255))cerr<<"\rPassed "<<t<<" tests"<<flush;
+        if(!(t&31))cerr<<"\rPassed "<<t<<" tests"<<flush;
     }
 
     remove("in");
