@@ -1,0 +1,26 @@
+Chinh do sang thanh 15:
+echo 15 | sudo tee /sys/class/backlight/intel_backlight/brightness
+
+Mo rong bo nho stack:
+
+ulimit -s unlimited
+
+Kill tac vu:
+pkill -9 cpeditor
+pkill -9 code
+
+Compile and run:
+g++ sol.cpp -o sol && ./sol
+./sol
+
+Bat canh bao va kiem tra tran mang:
+g++ -O3 -Wall -Wextra -Wshadow -fsanitize=address,undefined sol.cpp -o sol
+
+Xem cac tien trinh dang chay:
+top
+htop
+
+https://hackmd.io/@NgoDucMinh/SkAkpMSiWl
+https://github.com/wehavechemistry/wehavechemistry500
+
+
