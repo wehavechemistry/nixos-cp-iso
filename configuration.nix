@@ -57,28 +57,29 @@
       mkdir -p /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml
       mkdir -p /home/dtth/CP_Folder
 
-      # A. BÊ NGUYÊN THƯ MỤC CP_FOLDER TỪ REPO GITHUB THẢ VÀO HOME TRONG LIVE ISO
+      # A. BÊ NGUYÊN THƯ MỤC CP_FOLDER TỪ REPO GITHUB THẢ VÀO HOME TRONG LIVE ISO (BAO GỒM CẢ FILE PDF)
       cp -r ${./CP_Folder}/* /home/dtth/CP_Folder/
 
-      # B. GHI ĐÈ FILE CẤU HÌNH CP EDITOR (SỬA NGOẶC, ÉP FONT 13 VÀ THIẾT LẬP BREEZE DARK)
+      # B. GHI ĐÈ FILE CẤU HÌNH CP EDITOR (TẮT CHECK UPDATE, SỬA NGOẶC, FONT 13 VÀ BREEZE DARK)
       cat << 'EOF' > /home/dtth/.config/cpeditor/settings.ini
       [General]
+      check_update=false
       auto_complete_parentheses=true
       auto_remove_parentheses=true
       tab_jump_out_parentheses=true
       
-      # Thiết lập Theme Breeze Dark và UI Dark Fusion chuẩn đét theo ảnh yêu cầu
+      # Thiết lập Theme Breeze Dark và UI Dark Fusion
       editor_theme=Breeze Dark
       ui_style=Dark Fusion
       
-      # Ép cứng toàn bộ kích thước font chữ lên size 13 bằng chuỗi Qt thuần
+      # Ép cứng toàn bộ kích thước font chữ lên size 13
       editor_font="DejaVu Sans Mono,13,-1,5,50,0,0,0,0,0"
       test_cases_font="DejaVu Sans Mono,13,-1,5,50,0,0,0,0,0"
       message_logger_font="DejaVu Sans Mono,13,-1,5,50,0,0,0,0,0"
       show_only_monospaced_font=true
       use_custom_application_font=false
       
-      # Các cài đặt hệ thống bổ sung nhằm tối ưu hiệu năng ứng dụng
+      # Các cài đặt hệ thống bổ sung
       answer_file_save_path=./''${basename}_''${1-index}.ans
       ask_for_loading_external_changes=true
       auto_load_external_changes_if_no_unsaved_modification=true
@@ -88,7 +89,6 @@
       auto_uncheck_accepted_testcases=false
       beta=false
       check_on_testcases_with_empty_output=false
-      check_update=true
       cursor_width=1
       default_file_paths_for_problem_urls=@Invalid()
       default_language=C++
@@ -169,7 +169,7 @@
       enable=true
       EOF
 
-      # C. ĐỒNG BỘ WINDOW MANAGER ADWAITA-DARK TẠO NỀN GIAO DIỆN TỐI ĐỒNG BỘ VỚI CP EDITOR
+      # C. ĐỒNG BỘ WINDOW MANAGER ADWAITA-DARK TẠO NỀN GIAO DIỆN TỐI
       cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
@@ -218,8 +218,9 @@
       </channel>
       EOF
 
-      # E. PHÂN QUYỀN SỞ HỮU TOÀN BỘ FILE CHO USER TRÁNH LỖI READ-ONLY
+      # E. PHÂN QUYỀN SỞ HỮU VÀ MỞ KHÓA QUYỀN GHI TOÀN BỘ CHO CẢ Ổ /HOME/DTTH
       chown -R dtth:users /home/dtth
+      chmod -R u+w /home/dtth
     '';
     deps = [ "users" ];
   };
