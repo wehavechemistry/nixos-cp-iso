@@ -28,6 +28,9 @@
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = true;
   networking.networkmanager.enable = true;
+  
+  # Tắt dịch vụ wpa_supplicant mặc định của base ISO để NetworkManager chiếm trọn quyền dò Wi-Fi
+  networking.wireless.enable = lib.mkForce false;
 
   # 3. BỘ ỨNG DỤNG LẬP TRÌNH THI ĐẤU
   environment.systemPackages = with pkgs; [
@@ -37,6 +40,7 @@
     vscode
     cpeditor
     codeblocks
+    networkmanagerapplet # Applet icon Wi-Fi chuẩn nguyên bản của XFCE
   ];
 
   # ==================== SYSTEMD SERVICE: ÉP ĐỘ SÁNG PHẦN CỨNG VỀ ĐÚNG MỨC 10 ====================
@@ -57,13 +61,12 @@
       mkdir -p /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml
       mkdir -p /home/dtth/CP_Folder
 
-      # A. BÊ NGUYÊN THƯ MỤC CP_FOLDER TỪ REPO GITHUB THẢ VÀO HOME TRONG LIVE ISO (BAO GỒM CẢ FILE PDF)
+      # A. BÊ NGUYÊN THƯ MỤC CP_FOLDER TỪ REPO GITHUB THẢ VÀO HOME TRONG LIVE ISO
       cp -r ${./CP_Folder}/* /home/dtth/CP_Folder/
 
-      # B. GHI ĐÈ FILE CẤU HÌNH CP EDITOR (TẮT CHECK UPDATE, SỬA NGOẶC, FONT 13 VÀ BREEZE DARK)
+      # B. GHI ĐÈ FILE CẤU HÌNH CP EDITOR (CẬP NHẬT LIMITS, TẮT UPDATE, FONT 13 VÀ BREEZE DARK)
       cat << 'EOF' > /home/dtth/.config/cpeditor/settings.ini
       [General]
-      check_update=false
       auto_complete_parentheses=true
       auto_remove_parentheses=true
       tab_jump_out_parentheses=true
@@ -79,7 +82,7 @@
       show_only_monospaced_font=true
       use_custom_application_font=false
       
-      # Các cài đặt hệ thống bổ sung
+      # Cấu hình các thông số Limits và Tắt Check Update chuẩn theo ảnh
       answer_file_save_path=./''${basename}_''${1-index}.ans
       ask_for_loading_external_changes=true
       auto_load_external_changes_if_no_unsaved_modification=true
@@ -89,10 +92,11 @@
       auto_uncheck_accepted_testcases=false
       beta=false
       check_on_testcases_with_empty_output=false
+      check_update=false
       cursor_width=1
       default_file_paths_for_problem_urls=@Invalid()
       default_language=C++
-      default_time_limit=5000
+      default_time_limit=6000
       detached_run_terminal_arguments=-e
       detached_run_terminal_program=xterm
       display_eoln_in_diff=false
@@ -116,10 +120,10 @@
       message_length_limit=20000
       number_of_problems_in_contest=5
       opacity=100
-      open_file_length_limit=20000
+      open_file_length_limit=90000
       open_old_file_for_old_problem_url=false
       output_display_length_limit=50000
-      output_length_limit=500000
+      output_length_limit=5000000
       promotion_dialog_shown=false
       replace_tabs=false
       restore_old_problem_url=false
@@ -169,7 +173,7 @@
       enable=true
       EOF
 
-      # C. ĐỒNG BỘ WINDOW MANAGER ADWAITA-DARK TẠO NỀN GIAO DIỆN TỐI
+      # C. ĐỒNG BỘ WINDOW MANAGER ADWAITA-DARK TẠO NỀN GIAO DIỆN TỐI ĐỒNG BỘ VỚI CP EDITOR
       cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
@@ -218,7 +222,7 @@
       </channel>
       EOF
 
-      # E. PHÂN QUYỀN SỞ HỮU VÀ MỞ KHÓA QUYỀN GHI TOÀN BỘ CHO CẢ Ổ /HOME/DTTH
+      # E. PHÂN QUYỀN SỞ HỮU VÀ QUYỀN GHI HOÀN TOÀN CHO USER 'dtth' (SỬA DỨT ĐIỂM LỖI READ-ONLY)
       chown -R dtth:users /home/dtth
       chmod -R u+w /home/dtth
     '';
