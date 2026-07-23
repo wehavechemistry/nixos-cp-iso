@@ -3,7 +3,7 @@
     "${modulesPath}/installer/cd-dvd/installation-cd-base.nix"
   ];
 
-  # FIX GIỜ GIẤC PHÒNG THI: Khóa chuẩn múi giờ Việt Nam và đọc giờ Local từ BIOS Windows
+  # FIX GIỜ GIẤC PHÒNG THI: Múi giờ Việt Nam và đọc giờ Local từ BIOS Windows
   time.timeZone = "Asia/Ho_Chi_Minh";
   time.hardwareClockInLocalTime = true;
 
@@ -61,7 +61,7 @@
       mkdir -p /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml
       mkdir -p /home/dtth/CP_Folder
 
-      # A. BÊ NGUYÊN THƯ MỤC CP_FOLDER TỪ REPO GITHUB THẢ VÀO HOME TRONG LIVE ISO
+      # A. BÊ NGUYÊN THƯ MỤC CP_FOLDER TỪ REPO THẢ VÀO HOME TRONG LIVE ISO
       cp -r ${./CP_Folder}/* /home/dtth/CP_Folder/
 
       # B. GHI ĐÈ FILE CẤU HÌNH CP EDITOR (CẬP NHẬT LIMITS, TẮT UPDATE, FONT 13 VÀ BREEZE DARK)
@@ -82,7 +82,7 @@
       show_only_monospaced_font=true
       use_custom_application_font=false
       
-      # Cấu hình các thông số Limits và Tắt Check Update chuẩn theo ảnh
+      # Cấu hình các thông số Limits và Tắt Check Update
       answer_file_save_path=./''${basename}_''${1-index}.ans
       ask_for_loading_external_changes=true
       auto_load_external_changes_if_no_unsaved_modification=true
@@ -173,7 +173,7 @@
       enable=true
       EOF
 
-      # C. ĐỒNG BỘ WINDOW MANAGER ADWAITA-DARK TẠO NỀN GIAO DIỆN TỐI ĐỒNG BỘ VỚI CP EDITOR
+      # C. ĐỒNG BỘ WINDOW MANAGER ADWAITA-DARK
       cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
       <?xml version="1.0" encoding="UTF-8"?>
       <channel name="xsettings" version="1.0">
@@ -184,45 +184,47 @@
       </channel>
       EOF
 
-      # D. ÉP HÌNH NỀN HỆ THỐNG LOAD THÀNH FILE WALLPAPER TRÊN REPO
-      cp ${./wallpaper.png} /home/dtth/.config/wallpaper.png
-      cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
-      <?xml version="1.0" encoding="UTF-8"?>
-      <channel name="xfce4-desktop" version="1.0">
-        <property name="backdrop" type="empty">
-          <property name="screen0" type="empty">
-            <property name="monitoreDP-1" type="empty">
-              <property name="workspace0" type="empty">
-                <property name="image-style" type="int" value="5"/>
-                <property name="last-image" type="string" value="/home/dtth/.config/wallpaper.png"/>
-                <property name="color-style" type="int" value="0"/>
-                <property name="rgba1" type="array">
-                  <value type="double" value="0.000000"/>
-                  <value type="double" value="0.000000"/>
-                  <value type="double" value="0.000000"/>
-                  <value type="double" value="1.000000"/>
+      # D. ÉP HÌNH NỀN HỆ THỐNG LOAD THÀNH FILE WALLPAPER TRÊN REPO (NẾU CÓ)
+      if [ -f ${./wallpaper.png} ]; then
+        cp ${./wallpaper.png} /home/dtth/.config/wallpaper.png
+        cat << 'EOF' > /home/dtth/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+        <?xml version="1.0" encoding="UTF-8"?>
+        <channel name="xfce4-desktop" version="1.0">
+          <property name="backdrop" type="empty">
+            <property name="screen0" type="empty">
+              <property name="monitoreDP-1" type="empty">
+                <property name="workspace0" type="empty">
+                  <property name="image-style" type="int" value="5"/>
+                  <property name="last-image" type="string" value="/home/dtth/.config/wallpaper.png"/>
+                  <property name="color-style" type="int" value="0"/>
+                  <property name="rgba1" type="array">
+                    <value type="double" value="0.000000"/>
+                    <value type="double" value="0.000000"/>
+                    <value type="double" value="0.000000"/>
+                    <value type="double" value="1.000000"/>
+                  </property>
                 </property>
               </property>
-            </property>
-            <property name="monitor0" type="empty">
-              <property name="workspace0" type="empty">
-                <property name="image-style" type="int" value="5"/>
-                <property name="last-image" type="string" value="/home/dtth/.config/wallpaper.png"/>
-                <property name="color-style" type="int" value="0"/>
-                <property name="rgba1" type="array">
-                  <value type="double" value="0.000000"/>
-                  <value type="double" value="0.000000"/>
-                  <value type="double" value="0.000000"/>
-                  <value type="double" value="1.000000"/>
+              <property name="monitor0" type="empty">
+                <property name="workspace0" type="empty">
+                  <property name="image-style" type="int" value="5"/>
+                  <property name="last-image" type="string" value="/home/dtth/.config/wallpaper.png"/>
+                  <property name="color-style" type="int" value="0"/>
+                  <property name="rgba1" type="array">
+                    <value type="double" value="0.000000"/>
+                    <value type="double" value="0.000000"/>
+                    <value type="double" value="0.000000"/>
+                    <value type="double" value="1.000000"/>
+                  </property>
                 </property>
               </property>
             </property>
           </property>
-        </property>
-      </channel>
-      EOF
+        </channel>
+        EOF
+      fi
 
-      # E. PHÂN QUYỀN SỞ HỮU VÀ QUYỀN GHI HOÀN TOÀN CHO USER 'dtth' (SỬA DỨT ĐIỂM LỖI READ-ONLY)
+      # E. PHÂN QUYỀN SỞ HỮU VÀ QUYỀN GHI HOÀN TOÀN CHO USER 'dtth'
       chown -R dtth:users /home/dtth
       chmod -R u+w /home/dtth
     '';
